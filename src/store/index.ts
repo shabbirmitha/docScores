@@ -1,4 +1,4 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
 import playerReducer from "../features/Player/playerSlice";
@@ -8,12 +8,14 @@ import { loadState, saveState } from "@utils/localStorage";
 
 const preloadedState = loadState();
 
+const rootReducer = combineReducers({
+  player: playerReducer,
+  team: teamReducer,
+  match: matchReducer,
+});
+
 export const store = configureStore({
-  reducer: {
-    player: playerReducer,
-    team: teamReducer,
-    match: matchReducer,
-  },
+  reducer: rootReducer,
   preloadedState,
 });
 

@@ -282,7 +282,7 @@ const MatchPlay = () => {
                     autoFocus
                     value={onCrease?.bowlerId}
                     fullWidth
-                    onChange={(e, value) => {
+                    onChange={(_, value) => {
                       setOnCrease((prev) => ({ ...prev, bowlerId: value }));
                     }}
                     options={bowlersToBowl}
@@ -302,7 +302,7 @@ const MatchPlay = () => {
                     autoFocus
                     value={onCrease?.strikerId}
                     fullWidth
-                    onChange={(e, value) => {
+                    onChange={(_, value) => {
                       setOnCrease((prev) => ({ ...prev, strikerId: value }));
                     }}
                     options={playersToBat}
@@ -319,7 +319,7 @@ const MatchPlay = () => {
                     autoFocus
                     value={onCrease?.nonStrikerId}
                     fullWidth
-                    onChange={(e, value) => {
+                    onChange={(_, value) => {
                       setOnCrease((prev) => ({ ...prev, nonStrikerId: value }));
                     }}
                     options={playersToBat.filter((id) => id !== onCrease?.strikerId)}
@@ -355,7 +355,7 @@ const MatchPlay = () => {
                       <Autocomplete
                         {...fieldProps}
                         fullWidth
-                        onChange={(e, value) => fieldProps.onChange(value)}
+                        onChange={(_, value) => fieldProps.onChange(value)}
                         disableClearable
                         options={[...Array(7).keys()]}
                         renderInput={(params) => (
@@ -397,7 +397,7 @@ const MatchPlay = () => {
                         <Autocomplete
                           {...fieldProps}
                           disableClearable
-                          onChange={(e, value) => fieldProps.onChange(value)}
+                          onChange={(_, value) => fieldProps.onChange(value)}
                           disabled={!watch("isExtra")}
                           options={EXTRAS_MAP}
                           getOptionLabel={(option: MatchView.ExtraType) => EXTRAS_LABEL_MAP[option]}
@@ -458,7 +458,7 @@ const MatchPlay = () => {
                           {...fieldProps}
                           disableClearable
                           disabled={!watch("isWicket")}
-                          onChange={(e, value) => fieldProps.onChange(value)}
+                          onChange={(_, value) => fieldProps.onChange(value)}
                           options={WICKET_MAP}
                           getOptionLabel={(option: MatchView.WicketType) =>
                             WICKET_LABEL_MAP[option]
