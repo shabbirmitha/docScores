@@ -84,8 +84,8 @@ const SHORT_BALL_LABEL_MAP = {
 
 const formSchema = yup.object({
   runs: yup.number().required("Runs is Required."),
-  isExtra: yup.boolean(),
-  isWicket: yup.boolean(),
+  isExtra: yup.boolean().default(false),
+  isWicket: yup.boolean().default(false),
   extraType: yup
     .mixed<MatchView.ExtraType>()
     .oneOf(EXTRAS_MAP, "Invalid Extra Type.")
@@ -93,23 +93,35 @@ const formSchema = yup.object({
       is: true,
       then: (schema) => schema.required("Extra Type is Required."),
       otherwise: (schema) => schema.nullable().notRequired(),
-    }),
-  extraRuns: yup.number().when("isExtra", {
-    is: true,
-    then: (schema) => schema.required("Extra Runs is Required."),
-  }),
+    })
+    .default(null),
+  extraRuns: yup
+    .number()
+    .when("isExtra", {
+      is: true,
+      then: (schema) => schema.required("Extra Runs is Required."),
+      otherwise: (schema) => schema.nullable().notRequired(),
+    })
+    .default(null),
   wicketType: yup
     .mixed<MatchView.WicketType>()
     .oneOf(WICKET_MAP, "Invalid Wicket Type.")
     .when("isWicket", {
       is: true,
       then: (schema) => schema.required("Wicket Type is Required."),
-    }),
-  fielderId: yup.string(),
-  playerOut: yup.string().when("isWicket", {
-    is: true,
-    then: (schema) => schema.required("Player is Required."),
-  }),
+      otherwise: (schema) => schema.nullable().notRequired(),
+    })
+    .default(null),
+  fielderId: yup.string().nullable().default(null),
+  playerOut: yup
+    .mixed<"strikerId" | "nonStrikerId">()
+    .oneOf(["strikerId", "nonStrikerId"], "Invalid Player")
+    .when("isWicket", {
+      is: true,
+      then: (schema) => schema.required("Player is Required."),
+      otherwise: (schema) => schema.nullable().notRequired(),
+    })
+    .default(null),
 });
 
 const MatchPlay = () => {
