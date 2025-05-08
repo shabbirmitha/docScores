@@ -1,5 +1,3 @@
-import { MatchView } from "./matchSlice";
-
 export const matchData = [
   {
     id: "7ce941eb-ebe0-4d3a-b00c-515f482e9a47",

@@ -172,7 +172,9 @@ const MatchPlay = () => {
   const isFielderInvolved =
     wicketType === MatchView.WicketType.CAUGHT || wicketType === MatchView.WicketType.RUN_OUT;
 
-  const handleSubmitBall = (data: any) => {
+  const handleSubmitBall = (
+    data: MatchView.CurrentBall & { playerOut: "strikerId" | "nonStrikerId" }
+  ) => {
     if (matchId) {
       const newBall: MatchView.CurrentBall = {
         runs: data.runs,
@@ -336,7 +338,7 @@ const MatchPlay = () => {
               <FormControl>
                 <Controller
                   {...register("runs")}
-                  render={({ field: { ref, ...fieldProps } }) => {
+                  render={({ field: { ...fieldProps } }) => {
                     return (
                       <Autocomplete
                         {...fieldProps}
@@ -364,7 +366,7 @@ const MatchPlay = () => {
               <FormControl>
                 <Controller
                   {...register("isExtra")}
-                  render={({ field: { ref, ...fieldProps } }) => {
+                  render={({ field: { ...fieldProps } }) => {
                     return (
                       <DocStack flexDirection={"row"} alignItems={"center"}>
                         <Checkbox {...fieldProps} checked={fieldProps.value} />
@@ -378,7 +380,7 @@ const MatchPlay = () => {
                 <FormControl fullWidth>
                   <Controller
                     {...register("extraType")}
-                    render={({ field: { ref, ...fieldProps } }) => {
+                    render={({ field: { ...fieldProps } }) => {
                       return (
                         <Autocomplete
                           {...fieldProps}
@@ -403,7 +405,7 @@ const MatchPlay = () => {
                 <FormControl fullWidth>
                   <Controller
                     {...register("extraRuns")}
-                    render={({ field: { ref, ...fieldProps } }) => {
+                    render={({ field: { ...fieldProps } }) => {
                       return (
                         <TextField
                           {...fieldProps}
@@ -424,7 +426,7 @@ const MatchPlay = () => {
               <FormControl>
                 <Controller
                   {...register("isWicket")}
-                  render={({ field: { ref, ...fieldProps } }) => {
+                  render={({ field: { ...fieldProps } }) => {
                     return (
                       <DocStack flexDirection={"row"} alignItems={"center"}>
                         <Checkbox {...fieldProps} checked={fieldProps.value} />
@@ -438,7 +440,7 @@ const MatchPlay = () => {
                 <FormControl fullWidth>
                   <Controller
                     {...register("wicketType")}
-                    render={({ field: { ref, ...fieldProps } }) => {
+                    render={({ field: { ...fieldProps } }) => {
                       return (
                         <Autocomplete
                           {...fieldProps}
@@ -465,7 +467,7 @@ const MatchPlay = () => {
                 <FormControl fullWidth>
                   <Controller
                     {...register("playerOut")}
-                    render={({ field: { ref, ...fieldProps } }) => {
+                    render={({ field: { ...fieldProps } }) => {
                       return (
                         <Autocomplete
                           {...fieldProps}
@@ -497,7 +499,7 @@ const MatchPlay = () => {
                 <FormControl fullWidth>
                   <Controller
                     {...register("fielderId")}
-                    render={({ field: { ref, ...fieldProps } }) => {
+                    render={({ field: { ...fieldProps } }) => {
                       return (
                         <Autocomplete
                           {...fieldProps}

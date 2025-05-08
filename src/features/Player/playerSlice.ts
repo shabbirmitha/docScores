@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Players } from "./DUMMY_DATA";
 
 export enum PLAYER_ROLE {
   BATSMAN = "batsman",

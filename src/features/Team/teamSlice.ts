@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Player } from "../Player/playerSlice";
-import { Teams } from "./DUMMY_DATA";
 
 export interface Team {
   id: string;

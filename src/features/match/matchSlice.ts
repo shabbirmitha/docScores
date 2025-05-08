@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Player } from "features/Player/playerSlice";
 import { Team } from "features/Team/teamSlice";
-import { matchData } from "./DUMMY_DATA";
 import _ from "lodash";
 
 export namespace MatchView {
@@ -357,7 +356,7 @@ const matchSlice = createSlice({
       const matchIdToRemove = action.payload;
       state.matches = state.matches.filter((match) => match.id !== matchIdToRemove);
     },
-    devPatch: (state, action: PayloadAction<{ path: string; value: any }>) => {
+    devPatch: (state, action: PayloadAction<{ path: string; value: unknown }>) => {
       _.set(state, action.payload.path, action.payload.value);
     },
   },

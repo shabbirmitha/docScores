@@ -10,7 +10,7 @@ export const loadState = () => {
     return undefined;
   }
 };
-export const saveState = (state: any) => {
+export const saveState = (state: unknown) => {
   try {
     const serializedState = JSON.stringify(state);
     localStorage.setItem(LOCAL_STORAGE_KEY, serializedState);

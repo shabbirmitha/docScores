@@ -7,7 +7,6 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   { ignores: ["dist"] },
   {
-    parser: tseslint.ESLintParser,
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -20,10 +19,8 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+      "@typescript-eslint/no-namespace": "off",
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     },
   }
 );
