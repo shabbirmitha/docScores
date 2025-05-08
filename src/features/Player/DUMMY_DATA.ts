@@ -1,0 +1,26 @@
+import { PLAYER_ROLE } from "./playerSlice";
+
+export const Players = [
+  { id: "a9f2b4xk", name: "Rohit Sharma", role: PLAYER_ROLE?.BATSMAN },
+  { id: "m2p7l3qz", name: "Shubman Gill", role: PLAYER_ROLE?.BATSMAN },
+  { id: "v8d1k6so", name: "Virat Kohli", role: PLAYER_ROLE?.BATSMAN },
+  { id: "c3n9r5wl", name: "Shreyas Iyer", role: PLAYER_ROLE?.BATSMAN },
+  { id: "k7b6t0xe", name: "KL Rahul", role: PLAYER_ROLE?.WICKET_KEEPER },
+  { id: "e5z3f8mv", name: "Hardik Pandya", role: PLAYER_ROLE?.ALL_ROUNDER },
+  { id: "l1x0n2qe", name: "Ravindra Jadeja", role: PLAYER_ROLE?.ALL_ROUNDER },
+  { id: "z4m7s9kp", name: "Kuldeep Yadav", role: PLAYER_ROLE?.BOWLER },
+  { id: "h6v3y2nt", name: "Jasprit Bumrah", role: PLAYER_ROLE?.BOWLER },
+  { id: "p9c8r1wd", name: "Mohammed Siraj", role: PLAYER_ROLE?.BOWLER },
+  { id: "t2k5l8yb", name: "Mohammed Shami", role: PLAYER_ROLE?.BOWLER },
+  { id: "q8z1v4md", name: "Kane Williamson", role: PLAYER_ROLE?.BATSMAN },
+  { id: "a3p6r9bk", name: "Devon Conway", role: PLAYER_ROLE?.WICKET_KEEPER },
+  { id: "l7x2n0qs", name: "Daryl Mitchell", role: PLAYER_ROLE?.ALL_ROUNDER },
+  { id: "b4v9k2je", name: "Will Young", role: PLAYER_ROLE?.BATSMAN },
+  { id: "m5y3l1ft", name: "Glenn Phillips", role: PLAYER_ROLE?.ALL_ROUNDER },
+  { id: "x9d7s6co", name: "Mitchell Santner", role: PLAYER_ROLE?.ALL_ROUNDER },
+  { id: "z2k8w4ry", name: "Rachin Ravindra", role: PLAYER_ROLE?.ALL_ROUNDER },
+  { id: "d1t6p5xl", name: "Ish Sodhi", role: PLAYER_ROLE?.BOWLER },
+  { id: "f0n2m8qw", name: "Trent Boult", role: PLAYER_ROLE?.BOWLER },
+  { id: "n6r5j3yb", name: "Tim Southee", role: PLAYER_ROLE?.BOWLER },
+  { id: "u7c0v9ez", name: "Lockie Ferguson", role: PLAYER_ROLE?.BOWLER },
+];

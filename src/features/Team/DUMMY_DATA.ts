@@ -1,0 +1,38 @@
+export const Teams = [
+  {
+    id: "e51dd8da-7f18-4502-87c5-a05d3e037023",
+    name: "India",
+    playerIds: [
+      "a9f2b4xk",
+      "m2p7l3qz",
+      "v8d1k6so",
+      "c3n9r5wl",
+      "k7b6t0xe",
+      "e5z3f8mv",
+      "l1x0n2qe",
+      "z4m7s9kp",
+      "h6v3y2nt",
+      "p9c8r1wd",
+      "t2k5l8yb",
+    ],
+    captainId: "a9f2b4xk",
+  },
+  {
+    id: "6808eb1d-98ab-444d-b4ff-bef78f8ae027",
+    name: "New Zealand",
+    playerIds: [
+      "q8z1v4md",
+      "a3p6r9bk",
+      "l7x2n0qs",
+      "b4v9k2je",
+      "m5y3l1ft",
+      "x9d7s6co",
+      "z2k8w4ry",
+      "d1t6p5xl",
+      "f0n2m8qw",
+      "n6r5j3yb",
+      "u7c0v9ez",
+    ],
+    captainId: "x9d7s6co",
+  },
+];
