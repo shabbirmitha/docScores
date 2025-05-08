@@ -13,7 +13,7 @@ A web app to score cricket matches ball by ball. Built with **React**, **TypeScr
 
 - React + TypeScript
 - Vite
-- Redux Toolkit (optional, if used)
+- Redux Toolkit
 - PNPM for dependency management
 
 ## 🚀 Getting Started
