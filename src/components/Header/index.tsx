@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Typography, Button } from "@mui/material";
 import { Link } from "react-router-dom"; // For routing
 import DocStack from "@components/Stack";
+import CreateMatchModal from "@features/match/components/CreateMatchModal";
 
 const Header: React.FC = () => {
+  const [openCreateModal, setOpenCreateModel] = useState(false);
+
+  const handleOpen = () => setOpenCreateModel(true);
+  const handleClose = () => setOpenCreateModel(false);
   return (
     <DocStack
       style={{
@@ -17,7 +22,7 @@ const Header: React.FC = () => {
       flexDirection={"row"}
     >
       <Typography variant="h6">DocScores</Typography>
-      <DocStack flexDirection={"row"}>
+      <DocStack flexDirection={"row"} gap={1}>
         <Button component={Link} to="/">
           Home
         </Button>
@@ -27,7 +32,12 @@ const Header: React.FC = () => {
         <Button component={Link} to="/players">
           Players
         </Button>
+        <Button variant="contained" onClick={handleOpen}>
+          Create Match
+        </Button>
       </DocStack>
+
+      <CreateMatchModal open={openCreateModal} onClose={handleClose} />
     </DocStack>
   );
 };

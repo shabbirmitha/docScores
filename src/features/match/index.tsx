@@ -12,7 +12,8 @@ const MatchView = () => {
   return (
     <DocStack py={1} gap={1}>
       {match?.status === MatchViewType.MatchState.NOT_STARTED && <TossSelection />}
-      {match?.status === MatchViewType.MatchState.IN_PROGRESS && <MatchPlay />}
+      {(match?.status === MatchViewType.MatchState.IN_PROGRESS ||
+        match?.status === MatchViewType.MatchState.COMPLETED) && <MatchPlay />}
     </DocStack>
   );
 };

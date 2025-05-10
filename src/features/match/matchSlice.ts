@@ -32,6 +32,20 @@ export namespace MatchView {
     LEG_BYES = "leg_byes",
   }
 
+  export enum OVERS {
+    TEN = 10,
+    TWENTY = 20,
+    FIFTY = 50,
+    UNLIMITED = 1 / 0,
+  }
+
+  export enum MatchType {
+    T10 = "t10",
+    T20 = "t20",
+    ONE_DAY = "one-day",
+    TEST = "test",
+  }
+
   export interface Over {
     balls: CurrentBall[];
     bowlerId: Player["id"];
@@ -81,6 +95,8 @@ export namespace MatchView {
     currentRunRate: number;
     requiredRunRate?: number;
     target?: number;
+    ballsLeft?: number;
+    requiredRuns?: number;
 
     strikerId?: Player["id"];
     nonStrikerId?: Player["id"];
@@ -108,9 +124,18 @@ export namespace MatchView {
     toss: Toss | null;
     status: MatchState;
     innings: Inning[];
+    type: MatchType;
+    maxOvers: OVERS;
+    winner: Team["id"] | null;
   }
 }
 
+export const MatchToOversMap = {
+  [MatchView.MatchType.T10]: MatchView.OVERS.TEN,
+  [MatchView.MatchType.T20]: MatchView.OVERS.TWENTY,
+  [MatchView.MatchType.ONE_DAY]: MatchView.OVERS.FIFTY,
+  [MatchView.MatchType.TEST]: MatchView.OVERS.UNLIMITED,
+};
 interface MatchState {
   matches: MatchView.Match[];
 }
@@ -125,15 +150,23 @@ const matchSlice = createSlice({
   reducers: {
     createMatch: (
       state,
-      action: PayloadAction<{ id: MatchView.Match["id"]; teams: MatchView.Match["teams"] }>
+      action: PayloadAction<{
+        id: MatchView.Match["id"];
+        teams: MatchView.Match["teams"];
+        type: MatchView.MatchType;
+      }>
     ) => {
+      const maxOvers = MatchToOversMap[action.payload.type];
       const newMatch: MatchView.Match = {
         id: action.payload.id,
         teams: action.payload.teams,
+        type: action.payload.type,
         currentInnings: 0,
         toss: null,
         status: MatchView.MatchState.NOT_STARTED,
         innings: [],
+        maxOvers,
+        winner: null,
       };
       state.matches.push(newMatch);
     },
@@ -309,6 +342,84 @@ const matchSlice = createSlice({
         };
         innings.overs.push(newOver);
         [innings.strikerId, innings.nonStrikerId] = [innings.nonStrikerId, innings.strikerId];
+      }
+
+      const isFirstInning = match.currentInnings === 0;
+      const isAllOut = innings.wickets === 10;
+      const isBallsFinished =
+        innings.overs.length - 1 === match.maxOvers &&
+        lastOver.ballsLeft === 0 &&
+        lastOver.balls.length > 1;
+
+      if (isFirstInning && (isBallsFinished || isAllOut)) {
+        const battingTeam = {
+          teamId: innings.bowlingTeam.teamId,
+          players: innings.bowlingTeam.players.map((player) => ({
+            playerId: player.playerId,
+            runs: 0,
+            balls: 0,
+            fours: 0,
+            sixes: 0,
+            strikeRate: 0,
+            out: false,
+            outReason: null,
+            fielderId: null,
+            bowledById: null,
+          })),
+        };
+        const bowlingTeam = {
+          teamId: innings.battingTeam.teamId,
+          players: innings.battingTeam.players.map((player) => ({
+            playerId: player.playerId,
+            ballBowled: 0,
+            runsConceded: 0,
+            wickets: 0,
+            economy: 0,
+          })),
+        };
+
+        const Inning: MatchView.Inning = {
+          battingTeam,
+          bowlingTeam,
+          overs: [{ balls: [], bowlerId: "", ballsLeft: 6 }],
+          runs: 0,
+          wickets: 0,
+          extras: {
+            wides: 0,
+            noBalls: 0,
+            byes: 0,
+            legByes: 0,
+          },
+          currentRunRate: 0,
+          strikerId: "",
+          nonStrikerId: "",
+          target: innings.runs + 1,
+        };
+
+        if (match) {
+          match.currentInnings = 1;
+          match.innings.push(Inning);
+        }
+      }
+
+      if (!isFirstInning && isFinite(match.maxOvers)) {
+        const ballsLeft = match.maxOvers - innings.overs.length + lastOver.ballsLeft;
+        const requiredRuns = innings.target! - innings.runs;
+        const requiredRunRate = Number(((requiredRuns / ballsLeft) * 6).toFixed(2));
+        innings.ballsLeft = ballsLeft;
+        innings.requiredRuns = requiredRuns;
+        innings.requiredRunRate = requiredRunRate;
+
+        if (requiredRuns < 0 || isAllOut || ballsLeft === 0) {
+          match.status = MatchView.MatchState["COMPLETED"];
+          if (requiredRuns > 1) {
+            match.winner = innings.bowlingTeam.teamId;
+          } else if (requiredRuns === 0) {
+            // handle TIE
+          } else {
+            match.winner = innings.battingTeam.teamId;
+          }
+        }
       }
     },
     newPlayersInAction: (
