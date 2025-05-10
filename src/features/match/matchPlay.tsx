@@ -133,6 +133,7 @@ const MatchPlay = () => {
   }>();
   const matchId = new URLSearchParams(window.location.search).get("matchId");
   const matches = useAppSelector((state) => state.match.matches);
+  const teams = useAppSelector((state) => state.team.teams);
   const players = useAppSelector((state) => state.player.players);
 
   const match = matches.find((m) => m.id === matchId)!;
@@ -146,6 +147,9 @@ const MatchPlay = () => {
     strikerId,
     nonStrikerId,
     currentRunRate,
+    requiredRunRate,
+    // requiredRuns,
+    // ballsLeft: totalBallsLeft,
   }: MatchView.Inning = match.innings[match.currentInnings];
   const over = overs.length > 0 ? overs.length - 1 : 0;
 
@@ -262,398 +266,420 @@ const MatchPlay = () => {
     (p) => p.balls > 0 || p.playerId === strikerId || p.playerId === nonStrikerId
   );
 
+  const winner = teams.find((t) => t.id === match.winner);
+
   return (
     <DocStack py={1} gap={1}>
       <DocStack flexDirection={"row"} alignItems={"center"}>
         <Typography style={{ flex: 1 }}>MatchPlay</Typography>
       </DocStack>
-      <DocStack flexDirection={"row"} gap={1} bgcolor={"primary.main"} p={1} borderRadius={2}>
-        <StyledPanelCard>
-          {(!bowlerId || !nonStrikerId || !strikerId) && (
-            <Modal
-              open={open}
-              sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-            >
-              <DocStack width={400} gap={1} p={2} bgcolor={"secondary.main"} borderRadius={2}>
-                <Typography variant="h6">Select</Typography>
-                {!bowlerId && (
-                  <Autocomplete
-                    disableClearable
-                    autoFocus
-                    value={onCrease?.bowlerId}
-                    fullWidth
-                    onChange={(_, value) => {
-                      setOnCrease((prev) => ({ ...prev, bowlerId: value }));
-                    }}
-                    options={bowlersToBowl}
-                    getOptionLabel={(option: Player["id"]) => {
-                      const playerId = _bowlingTeam.players.find(
-                        (p) => p.playerId === option
-                      )?.playerId;
-                      const player = players.find((p) => p.id === playerId);
-                      return player ? player.name : "Unknown Player";
-                    }}
-                    renderInput={(params) => <TextField {...params} label="Select Bowler" />}
-                  />
-                )}
-                {!strikerId && (
-                  <Autocomplete
-                    disableClearable
-                    autoFocus
-                    value={onCrease?.strikerId}
-                    fullWidth
-                    onChange={(_, value) => {
-                      setOnCrease((prev) => ({ ...prev, strikerId: value }));
-                    }}
-                    options={playersToBat}
-                    getOptionLabel={(option: Player["id"]) => {
-                      const player = players.find((p) => p.id === option);
-                      return player ? player.name : "Unknown Player";
-                    }}
-                    renderInput={(params) => <TextField {...params} label="Select Striker" />}
-                  />
-                )}
-                {!nonStriker && (
-                  <Autocomplete
-                    disableClearable
-                    autoFocus
-                    value={onCrease?.nonStrikerId}
-                    fullWidth
-                    onChange={(_, value) => {
-                      setOnCrease((prev) => ({ ...prev, nonStrikerId: value }));
-                    }}
-                    options={playersToBat.filter((id) => id !== onCrease?.strikerId)}
-                    getOptionLabel={(option: Player["id"]) => {
-                      const player = players.find((p) => p.id === option);
-                      return player ? player.name : "Unknown Player";
-                    }}
-                    renderInput={(params) => <TextField {...params} label="Select Non Striker" />}
-                  />
-                )}
-                <Button variant="contained" onClick={handleSelect}>
-                  Select
-                </Button>
-              </DocStack>
-            </Modal>
-          )}
-
-          <FormProvider {...methods}>
-            {/* Title */}
-            <DocStack gap={1}>
-              <Typography variant="h6" color="primary.main">
-                Panel
-              </Typography>
-            </DocStack>
-
-            {/* Runs */}
-            <DocStack gap={1}>
-              <FormControl>
-                <Controller
-                  {...register("runs")}
-                  render={({ field: { ...fieldProps } }) => {
-                    return (
+      {match.status === MatchView.MatchState.IN_PROGRESS ? (
+        <>
+          <DocStack flexDirection={"row"} gap={1} bgcolor={"primary.main"} p={1} borderRadius={2}>
+            <StyledPanelCard>
+              {(!bowlerId || !nonStrikerId || !strikerId) && (
+                <Modal
+                  open={open}
+                  sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                >
+                  <DocStack width={400} gap={1} p={2} bgcolor={"secondary.main"} borderRadius={2}>
+                    <Typography variant="h6">Select</Typography>
+                    {!bowlerId && (
                       <Autocomplete
-                        {...fieldProps}
-                        fullWidth
-                        onChange={(_, value) => fieldProps.onChange(value)}
                         disableClearable
-                        options={[...Array(7).keys()]}
+                        autoFocus
+                        value={onCrease?.bowlerId}
+                        fullWidth
+                        onChange={(_, value) => {
+                          setOnCrease((prev) => ({ ...prev, bowlerId: value }));
+                        }}
+                        options={bowlersToBowl}
+                        getOptionLabel={(option: Player["id"]) => {
+                          const playerId = _bowlingTeam.players.find(
+                            (p) => p.playerId === option
+                          )?.playerId;
+                          const player = players.find((p) => p.id === playerId);
+                          return player ? player.name : "Unknown Player";
+                        }}
+                        renderInput={(params) => <TextField {...params} label="Select Bowler" />}
+                      />
+                    )}
+                    {!strikerId && (
+                      <Autocomplete
+                        disableClearable
+                        autoFocus
+                        value={onCrease?.strikerId}
+                        fullWidth
+                        onChange={(_, value) => {
+                          setOnCrease((prev) => ({ ...prev, strikerId: value }));
+                        }}
+                        options={playersToBat}
+                        getOptionLabel={(option: Player["id"]) => {
+                          const player = players.find((p) => p.id === option);
+                          return player ? player.name : "Unknown Player";
+                        }}
+                        renderInput={(params) => <TextField {...params} label="Select Striker" />}
+                      />
+                    )}
+                    {!nonStriker && (
+                      <Autocomplete
+                        disableClearable
+                        autoFocus
+                        value={onCrease?.nonStrikerId}
+                        fullWidth
+                        onChange={(_, value) => {
+                          setOnCrease((prev) => ({ ...prev, nonStrikerId: value }));
+                        }}
+                        options={playersToBat.filter((id) => id !== onCrease?.strikerId)}
+                        getOptionLabel={(option: Player["id"]) => {
+                          const player = players.find((p) => p.id === option);
+                          return player ? player.name : "Unknown Player";
+                        }}
                         renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Runs"
-                            error={!!errors.runs}
-                            helperText={errors.runs?.message}
-                          />
+                          <TextField {...params} label="Select Non Striker" />
                         )}
                       />
-                    );
-                  }}
-                />
-              </FormControl>
-            </DocStack>
-
-            {/* isExtra */}
-            <DocStack gap={1}>
-              <FormControl>
-                <Controller
-                  {...register("isExtra")}
-                  render={({ field: { ...fieldProps } }) => {
-                    return (
-                      <DocStack flexDirection={"row"} alignItems={"center"}>
-                        <Checkbox {...fieldProps} checked={fieldProps.value} />
-                        <Typography>Is Extra ?</Typography>
-                      </DocStack>
-                    );
-                  }}
-                />
-              </FormControl>
-              <DocStack flexDirection={"row"} gap={1}>
-                <FormControl fullWidth>
-                  <Controller
-                    {...register("extraType")}
-                    render={({ field: { ...fieldProps } }) => {
-                      return (
-                        <Autocomplete
-                          {...fieldProps}
-                          disableClearable
-                          onChange={(_, value) => fieldProps.onChange(value)}
-                          disabled={!watch("isExtra")}
-                          options={EXTRAS_MAP}
-                          getOptionLabel={(option: MatchView.ExtraType) => EXTRAS_LABEL_MAP[option]}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="Extra Type"
-                              error={!!errors.extraType}
-                              helperText={errors.extraType?.message}
-                            />
-                          )}
-                        />
-                      );
-                    }}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <Controller
-                    {...register("extraRuns")}
-                    render={({ field: { ...fieldProps } }) => {
-                      return (
-                        <TextField
-                          {...fieldProps}
-                          disabled={!watch("isExtra")}
-                          label="Extra Runs"
-                          error={!!errors.extraRuns}
-                          helperText={errors.extraRuns?.message}
-                        />
-                      );
-                    }}
-                  />
-                </FormControl>
-              </DocStack>
-            </DocStack>
-
-            {/* isWicket */}
-            <DocStack gap={1}>
-              <FormControl>
-                <Controller
-                  {...register("isWicket")}
-                  render={({ field: { ...fieldProps } }) => {
-                    return (
-                      <DocStack flexDirection={"row"} alignItems={"center"}>
-                        <Checkbox {...fieldProps} checked={fieldProps.value} />
-                        <Typography>Is Wicket ?</Typography>
-                      </DocStack>
-                    );
-                  }}
-                />
-              </FormControl>
-              <DocStack flexDirection={"row"} gap={1}>
-                <FormControl fullWidth>
-                  <Controller
-                    {...register("wicketType")}
-                    render={({ field: { ...fieldProps } }) => {
-                      return (
-                        <Autocomplete
-                          {...fieldProps}
-                          disableClearable
-                          disabled={!watch("isWicket")}
-                          onChange={(_, value) => fieldProps.onChange(value)}
-                          options={WICKET_MAP}
-                          getOptionLabel={(option: MatchView.WicketType) =>
-                            WICKET_LABEL_MAP[option]
-                          }
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="Wicket Type"
-                              error={!!errors.wicketType}
-                              helperText={errors.wicketType?.message}
-                            />
-                          )}
-                        />
-                      );
-                    }}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <Controller
-                    {...register("playerOut")}
-                    render={({ field: { ...fieldProps } }) => {
-                      return (
-                        <Autocomplete
-                          {...fieldProps}
-                          disabled={!watch("isWicket")}
-                          options={["strikerId", "nonStrikerId"]}
-                          onChange={(_, value) => fieldProps.onChange(value)}
-                          getOptionLabel={(option) => {
-                            console.log("option", option);
-                            console.log("onCrease", onCrease);
-                            const playerId = onCrease?.[option as keyof typeof onCrease];
-                            console.log("playerId", playerId);
-                            return players.find((p) => p.id === playerId)?.name || "Unknown Player";
-                          }}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="Batsman Out"
-                              error={!!errors.playerOut}
-                              helperText={errors.playerOut?.message}
-                            />
-                          )}
-                        />
-                      );
-                    }}
-                  />
-                </FormControl>
-              </DocStack>
-              {!!isFielderInvolved && watch("isWicket") && (
-                <FormControl fullWidth>
-                  <Controller
-                    {...register("fielderId")}
-                    render={({ field: { ...fieldProps } }) => {
-                      return (
-                        <Autocomplete
-                          {...fieldProps}
-                          disabled={!watch("isWicket") && !isFielderInvolved}
-                          options={fieldersId}
-                          getOptionLabel={(option) =>
-                            players.find((p) => p.id === option)?.name || ""
-                          }
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="Fielder"
-                              error={!!errors.fielderId}
-                              helperText={errors.fielderId?.message}
-                            />
-                          )}
-                        />
-                      );
-                    }}
-                  />
-                </FormControl>
+                    )}
+                    <Button variant="contained" onClick={handleSelect}>
+                      Select
+                    </Button>
+                  </DocStack>
+                </Modal>
               )}
-            </DocStack>
 
-            <Divider sx={{ my: 0.5 }} />
-            {/* Submit */}
-            <DocStack
-              gap={1}
-              flexDirection={"row"}
-              alignItems={"center"}
-              justifyContent={"space-between"}
-            >
-              <Button variant="contained" color="primary" onClick={handleSubmit(handleSubmitBall)}>
-                Submit
-              </Button>
-              <DocStack alignItems={"flex-end"}>
-                <Typography variant="caption">Over: 0.0</Typography>
-                <Typography variant="caption">Score: 0-0</Typography>
+              <FormProvider {...methods}>
+                {/* Title */}
+                <DocStack gap={1}>
+                  <Typography variant="h6" color="primary.main">
+                    Panel
+                  </Typography>
+                </DocStack>
+
+                {/* Runs */}
+                <DocStack gap={1}>
+                  <FormControl>
+                    <Controller
+                      {...register("runs")}
+                      render={({ field: { ...fieldProps } }) => {
+                        return (
+                          <Autocomplete
+                            {...fieldProps}
+                            fullWidth
+                            onChange={(_, value) => fieldProps.onChange(value)}
+                            disableClearable
+                            options={[...Array(7).keys()]}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Runs"
+                                error={!!errors.runs}
+                                helperText={errors.runs?.message}
+                              />
+                            )}
+                          />
+                        );
+                      }}
+                    />
+                  </FormControl>
+                </DocStack>
+
+                {/* isExtra */}
+                <DocStack gap={1}>
+                  <FormControl>
+                    <Controller
+                      {...register("isExtra")}
+                      render={({ field: { ...fieldProps } }) => {
+                        return (
+                          <DocStack flexDirection={"row"} alignItems={"center"}>
+                            <Checkbox {...fieldProps} checked={fieldProps.value} />
+                            <Typography>Is Extra ?</Typography>
+                          </DocStack>
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <DocStack flexDirection={"row"} gap={1}>
+                    <FormControl fullWidth>
+                      <Controller
+                        {...register("extraType")}
+                        render={({ field: { ...fieldProps } }) => {
+                          return (
+                            <Autocomplete
+                              {...fieldProps}
+                              disableClearable
+                              onChange={(_, value) => fieldProps.onChange(value)}
+                              disabled={!watch("isExtra")}
+                              options={EXTRAS_MAP}
+                              getOptionLabel={(option: MatchView.ExtraType) =>
+                                EXTRAS_LABEL_MAP[option]
+                              }
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Extra Type"
+                                  error={!!errors.extraType}
+                                  helperText={errors.extraType?.message}
+                                />
+                              )}
+                            />
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormControl fullWidth>
+                      <Controller
+                        {...register("extraRuns")}
+                        render={({ field: { ...fieldProps } }) => {
+                          return (
+                            <TextField
+                              {...fieldProps}
+                              disabled={!watch("isExtra")}
+                              label="Extra Runs"
+                              error={!!errors.extraRuns}
+                              helperText={errors.extraRuns?.message}
+                            />
+                          );
+                        }}
+                      />
+                    </FormControl>
+                  </DocStack>
+                </DocStack>
+
+                {/* isWicket */}
+                <DocStack gap={1}>
+                  <FormControl>
+                    <Controller
+                      {...register("isWicket")}
+                      render={({ field: { ...fieldProps } }) => {
+                        return (
+                          <DocStack flexDirection={"row"} alignItems={"center"}>
+                            <Checkbox {...fieldProps} checked={fieldProps.value} />
+                            <Typography>Is Wicket ?</Typography>
+                          </DocStack>
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <DocStack flexDirection={"row"} gap={1}>
+                    <FormControl fullWidth>
+                      <Controller
+                        {...register("wicketType")}
+                        render={({ field: { ...fieldProps } }) => {
+                          return (
+                            <Autocomplete
+                              {...fieldProps}
+                              disableClearable
+                              disabled={!watch("isWicket")}
+                              onChange={(_, value) => fieldProps.onChange(value)}
+                              options={WICKET_MAP}
+                              getOptionLabel={(option: MatchView.WicketType) =>
+                                WICKET_LABEL_MAP[option]
+                              }
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Wicket Type"
+                                  error={!!errors.wicketType}
+                                  helperText={errors.wicketType?.message}
+                                />
+                              )}
+                            />
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormControl fullWidth>
+                      <Controller
+                        {...register("playerOut")}
+                        render={({ field: { ...fieldProps } }) => {
+                          return (
+                            <Autocomplete
+                              {...fieldProps}
+                              disabled={!watch("isWicket")}
+                              options={["strikerId", "nonStrikerId"]}
+                              onChange={(_, value) => fieldProps.onChange(value)}
+                              getOptionLabel={(option) => {
+                                const playerId = onCrease?.[option as keyof typeof onCrease];
+                                return (
+                                  players.find((p) => p.id === playerId)?.name || "Unknown Player"
+                                );
+                              }}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Batsman Out"
+                                  error={!!errors.playerOut}
+                                  helperText={errors.playerOut?.message}
+                                />
+                              )}
+                            />
+                          );
+                        }}
+                      />
+                    </FormControl>
+                  </DocStack>
+                  {!!isFielderInvolved && watch("isWicket") && (
+                    <FormControl fullWidth>
+                      <Controller
+                        {...register("fielderId")}
+                        render={({ field: { ...fieldProps } }) => {
+                          return (
+                            <Autocomplete
+                              {...fieldProps}
+                              disabled={!watch("isWicket") && !isFielderInvolved}
+                              options={fieldersId}
+                              getOptionLabel={(option) =>
+                                players.find((p) => p.id === option)?.name || ""
+                              }
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Fielder"
+                                  error={!!errors.fielderId}
+                                  helperText={errors.fielderId?.message}
+                                />
+                              )}
+                            />
+                          );
+                        }}
+                      />
+                    </FormControl>
+                  )}
+                </DocStack>
+
+                <Divider sx={{ my: 0.5 }} />
+                {/* Submit */}
+                <DocStack
+                  gap={1}
+                  flexDirection={"row"}
+                  alignItems={"center"}
+                  justifyContent={"space-between"}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSubmit(handleSubmitBall)}
+                  >
+                    Submit
+                  </Button>
+                  <DocStack alignItems={"flex-end"}>
+                    <Typography variant="caption">Over: 0.0</Typography>
+                    <Typography variant="caption">Score: 0-0</Typography>
+                  </DocStack>
+                </DocStack>
+              </FormProvider>
+            </StyledPanelCard>
+          </DocStack>
+
+          <StyledScoreCard>
+            <DocStack flex={2} color={"secondary.main"} gap={1}>
+              <DocStack flexDirection={"row"} justifyContent={"space-between"}>
+                <Typography variant="subtitle2" fontWeight="bold">
+                  {striker?.name} *
+                </Typography>
+                <DocStack flexDirection={"row"} gap={0.2} alignItems={"flex-end"}>
+                  <Typography variant="subtitle2">
+                    {strikerStats && strikerStats.runs ? strikerStats.runs : 0}
+                  </Typography>
+                  <Typography variant="caption">
+                    {strikerStats && strikerStats.balls ? strikerStats.balls : 0}
+                  </Typography>
+                </DocStack>
+              </DocStack>
+              <DocStack flexDirection={"row"} justifyContent={"space-between"}>
+                <Typography variant="subtitle2" fontWeight="bold">
+                  {nonStriker?.name}
+                </Typography>
+                <DocStack flexDirection={"row"} gap={0.2} alignItems={"flex-end"}>
+                  <Typography variant="subtitle2">
+                    {nonStrikerStats && nonStrikerStats.runs ? nonStrikerStats.runs : 0}
+                  </Typography>
+                  <Typography variant="caption">
+                    {nonStrikerStats && nonStrikerStats.balls ? nonStrikerStats.balls : 0}
+                  </Typography>
+                </DocStack>
               </DocStack>
             </DocStack>
-          </FormProvider>
-        </StyledPanelCard>
-      </DocStack>
+            <DocStack flex={1}>
+              <DocStack
+                bgcolor={"secondary.main"}
+                color={"primary.main"}
+                alignItems={"center"}
+                justifyContent={"center"}
+                borderRadius={2}
+              >
+                <Typography>
+                  {runs}-{wickets}
+                </Typography>
+                <Typography>
+                  {over}.{ballsLeft}
+                </Typography>
+              </DocStack>
+              <DocStack
+                color={"secondary.main"}
+                alignItems={"center"}
+                justifyContent={"space-between"}
+                flexDirection={"row"}
+              >
+                {!!currentRunRate && (
+                  <Typography variant="caption">{`CRR:${currentRunRate}`}</Typography>
+                )}
+                {!!requiredRunRate && (
+                  <Typography variant="caption">{`RRR:${requiredRunRate}`}</Typography>
+                )}
+              </DocStack>
+            </DocStack>
+            <DocStack flex={2} gap={1}>
+              {!!bowler && (
+                <DocStack
+                  flexDirection={"row"}
+                  gap={1}
+                  justifyContent={"flex-end"}
+                  color={"secondary.main"}
+                  alignItems={"center"}
+                >
+                  <Typography variant="subtitle2">{bowler?.name}</Typography>
+                  <Chip
+                    label={`${bowlerStats?.wickets}-${bowlerStats?.runsConceded} | ${bowlerStats && bowlerStats.ballBowled > 0 ? ballsToOvers(bowlerStats?.ballBowled) : 0.0}`}
+                    color="secondary"
+                    variant="filled"
+                    size="small"
+                    style={{ borderRadius: 8 }}
+                  />
+                </DocStack>
+              )}
+              <DocStack flexDirection={"row"} gap={1} height={32}>
+                {balls &&
+                  balls.map((ball, index) => (
+                    <Chip
+                      key={index}
+                      color="secondary"
+                      variant={
+                        ball.runs === 4 || ball.runs === 6 || ball.isWicket ? "filled" : "outlined"
+                      }
+                      style={{ borderRadius: 8 }}
+                      label={getOverBallsText(ball)}
+                    />
+                  ))}
+              </DocStack>
+            </DocStack>
+          </StyledScoreCard>
+        </>
+      ) : (
+        <StyledScoreCard>
+          <Typography color="secondary.main" variant="h6">
+            {winner?.name} Won
+          </Typography>
+        </StyledScoreCard>
+      )}
 
-      <StyledScoreCard>
-        <DocStack flex={2} color={"secondary.main"} gap={1}>
-          <DocStack flexDirection={"row"} justifyContent={"space-between"}>
-            <Typography variant="subtitle2" fontWeight="bold">
-              {striker?.name} *
-            </Typography>
-            <DocStack flexDirection={"row"} gap={0.2} alignItems={"flex-end"}>
-              <Typography variant="subtitle2">
-                {strikerStats && strikerStats.runs ? strikerStats.runs : 0}
-              </Typography>
-              <Typography variant="caption">
-                {strikerStats && strikerStats.balls ? strikerStats.balls : 0}
-              </Typography>
-            </DocStack>
-          </DocStack>
-          <DocStack flexDirection={"row"} justifyContent={"space-between"}>
-            <Typography variant="subtitle2" fontWeight="bold">
-              {nonStriker?.name}
-            </Typography>
-            <DocStack flexDirection={"row"} gap={0.2} alignItems={"flex-end"}>
-              <Typography variant="subtitle2">
-                {nonStrikerStats && nonStrikerStats.runs ? nonStrikerStats.runs : 0}
-              </Typography>
-              <Typography variant="caption">
-                {nonStrikerStats && nonStrikerStats.balls ? nonStrikerStats.balls : 0}
-              </Typography>
-            </DocStack>
-          </DocStack>
-        </DocStack>
-        <DocStack flex={1}>
-          <DocStack
-            bgcolor={"secondary.main"}
-            color={"primary.main"}
-            alignItems={"center"}
-            justifyContent={"center"}
-            borderRadius={2}
-          >
-            <Typography>
-              {runs}-{wickets}
-            </Typography>
-            <Typography>
-              {over}.{ballsLeft}
-            </Typography>
-          </DocStack>
-          <DocStack
-            color={"secondary.main"}
-            alignItems={"center"}
-            height={20}
-            justifyContent={"center"}
-          >
-            {!!currentRunRate && (
-              <Typography variant="caption">{`CRR:${currentRunRate}`}</Typography>
-            )}
-          </DocStack>
-        </DocStack>
-        <DocStack flex={2} gap={1}>
-          {!!bowler && (
-            <DocStack
-              flexDirection={"row"}
-              gap={1}
-              justifyContent={"flex-end"}
-              color={"secondary.main"}
-              alignItems={"center"}
-            >
-              <Typography variant="subtitle2">{bowler?.name}</Typography>
-              <Chip
-                label={`${bowlerStats?.wickets}-${bowlerStats?.runsConceded} | ${bowlerStats && bowlerStats.ballBowled > 0 ? ballsToOvers(bowlerStats?.ballBowled) : 0.0}`}
-                color="secondary"
-                variant="filled"
-                size="small"
-                style={{ borderRadius: 8 }}
-              />
-            </DocStack>
-          )}
-          <DocStack flexDirection={"row"} gap={1} height={32}>
-            {balls &&
-              balls.map((ball, index) => (
-                <Chip
-                  key={index}
-                  color="secondary"
-                  variant={
-                    ball.runs === 4 || ball.runs === 6 || ball.isWicket ? "filled" : "outlined"
-                  }
-                  style={{ borderRadius: 8 }}
-                  label={getOverBallsText(ball)}
-                />
-              ))}
-          </DocStack>
-        </DocStack>
-      </StyledScoreCard>
-
-      <DocStack flexDirection={"row"} gap={1}>
+      <DocStack flexDirection={"row"} gap={1} justifyContent={"space-between"}>
         {/* Batsmen Stats */}
         {batsmanBatted.length > 0 && (
           <DocStack
             color={"primary.main"}
             bgcolor={"secondary.main"}
-            width={"fit-content"}
+            flex={1}
             borderRadius={2}
             p={1.5}
           >
@@ -692,7 +718,7 @@ const MatchPlay = () => {
           <DocStack
             color={"primary.main"}
             bgcolor={"secondary.main"}
-            width={"fit-content"}
+            flex={1}
             borderRadius={2}
             p={1.5}
           >
