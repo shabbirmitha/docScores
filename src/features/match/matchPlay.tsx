@@ -7,7 +7,10 @@ import {
   Chip,
   Divider,
   FormControl,
+  FormControlLabel,
   Modal,
+  Radio,
+  RadioGroup,
   styled,
   TextField,
   Typography,
@@ -124,6 +127,13 @@ const formSchema = yup.object({
     .default(null),
 });
 
+const DEFAULT_BALL_DATA = {
+  runs: 0,
+  isExtra: false,
+  isWicket: false,
+  extraRuns: 0,
+};
+
 const MatchPlay = () => {
   const dispatch = useAppDispatch();
   const [onCrease, setOnCrease] = useState<{
@@ -167,12 +177,7 @@ const MatchPlay = () => {
   const methods = useForm({
     mode: "onChange",
     resolver: yupResolver(formSchema),
-    defaultValues: {
-      runs: 0,
-      isExtra: false,
-      isWicket: false,
-      extraRuns: 0,
-    },
+    defaultValues: { ...DEFAULT_BALL_DATA },
   });
 
   const {
@@ -209,7 +214,7 @@ const MatchPlay = () => {
           nonStrikerId: onCrease?.strikerId,
         }));
       }
-      reset();
+      reset(DEFAULT_BALL_DATA);
     }
   };
 
@@ -362,21 +367,19 @@ const MatchPlay = () => {
                       {...register("runs")}
                       render={({ field: { ...fieldProps } }) => {
                         return (
-                          <Autocomplete
+                          <RadioGroup
                             {...fieldProps}
-                            fullWidth
-                            onChange={(_, value) => fieldProps.onChange(value)}
-                            disableClearable
-                            options={[...Array(7).keys()]}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Runs"
-                                error={!!errors.runs}
-                                helperText={errors.runs?.message}
+                            style={{ display: "flex", flexDirection: "row" }}
+                          >
+                            {[...Array(7).keys()].map((_, i) => (
+                              <FormControlLabel
+                                value={i}
+                                control={<Radio />}
+                                label={i}
+                                disabled={fieldProps.disabled}
                               />
-                            )}
-                          />
+                            ))}
+                          </RadioGroup>
                         );
                       }}
                     />
@@ -687,12 +690,12 @@ const MatchPlay = () => {
               <Typography variant="subtitle1" fontWeight={"bold"}>
                 Batsmen :
               </Typography>
-              <DocStack flexDirection={"row"} gap={2} width={130}>
-                <Typography>R</Typography>
-                <Typography>B</Typography>
-                <Typography>4</Typography>
-                <Typography>6</Typography>
-                <Typography>S/R</Typography>
+              <DocStack flexDirection={"row"} gap={0.5} width={160}>
+                <Typography width={28}>R</Typography>
+                <Typography width={28}>B</Typography>
+                <Typography width={28}>4</Typography>
+                <Typography width={28}>6</Typography>
+                <Typography width={28}>S/R</Typography>
               </DocStack>
             </DocStack>
 
@@ -701,12 +704,12 @@ const MatchPlay = () => {
               return (
                 <DocStack flexDirection={"row"} gap={5} justifyContent={"space-between"}>
                   <Typography variant="subtitle2">{player?.name}</Typography>
-                  <DocStack flexDirection={"row"} gap={2} width={160}>
-                    <Typography>{_pl.runs}</Typography>
-                    <Typography>{_pl.balls}</Typography>
-                    <Typography>{_pl.fours}</Typography>
-                    <Typography>{_pl.sixes}</Typography>
-                    <Typography>{_pl.strikeRate}</Typography>
+                  <DocStack flexDirection={"row"} gap={0.5} width={160}>
+                    <Typography width={28}>{_pl.runs}</Typography>
+                    <Typography width={28}>{_pl.balls}</Typography>
+                    <Typography width={28}>{_pl.fours}</Typography>
+                    <Typography width={28}>{_pl.sixes}</Typography>
+                    <Typography width={28}>{_pl.strikeRate}</Typography>
                   </DocStack>
                 </DocStack>
               );
@@ -726,11 +729,11 @@ const MatchPlay = () => {
               <Typography variant="subtitle1" fontWeight={"bold"}>
                 Bowlers :
               </Typography>
-              <DocStack flexDirection={"row"} gap={2} width={130}>
-                <Typography>O</Typography>
-                <Typography>R</Typography>
-                <Typography>W</Typography>
-                <Typography>Eco</Typography>
+              <DocStack flexDirection={"row"} gap={0.5} width={130}>
+                <Typography width={28}>O</Typography>
+                <Typography width={28}>R</Typography>
+                <Typography width={28}>W</Typography>
+                <Typography width={28}>Eco</Typography>
               </DocStack>
             </DocStack>
 
@@ -739,11 +742,11 @@ const MatchPlay = () => {
               return (
                 <DocStack flexDirection={"row"} gap={5} justifyContent={"space-between"}>
                   <Typography variant="subtitle2">{player?.name}</Typography>
-                  <DocStack flexDirection={"row"} gap={2} width={130}>
-                    <Typography>{ballsToOvers(_pl.ballBowled)}</Typography>
-                    <Typography>{_pl.runsConceded}</Typography>
-                    <Typography>{_pl.wickets}</Typography>
-                    <Typography>{_pl.economy}</Typography>
+                  <DocStack flexDirection={"row"} gap={0.5} width={130}>
+                    <Typography width={28}>{ballsToOvers(_pl.ballBowled)}</Typography>
+                    <Typography width={28}>{_pl.runsConceded}</Typography>
+                    <Typography width={28}>{_pl.wickets}</Typography>
+                    <Typography width={28}>{_pl.economy}</Typography>
                   </DocStack>
                 </DocStack>
               );
