@@ -1,11 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AppContent from "./app/AppContent";
-import PlayerList from "./features/Player";
-import PlayerForm from "./features/Player/PlayerForm";
-import TeamsList from "./features/Team";
-import TeamForm from "./features/Team/TeamForm";
-import HomePage from "./features/HomePage";
-import MatchView from "./features/ Match";
+import PlayerList from "@features/Player";
+import PlayerForm from "@features/Player/PlayerForm";
+import TeamsList from "@features/Team";
+import TeamForm from "@features/Team/TeamForm";
+import HomePage from "@features/HomePage";
+import MatchView from "@features/ Match";
+import Login from "@features/Auth";
 
 function App() {
   return (
@@ -19,6 +20,8 @@ function App() {
           <Route path="/teams" element={<TeamsList />} />
           <Route path="/team/new" element={<TeamForm />} />
           <Route path="/match" element={<MatchView />} />
+          {/* Login */}
+          <Route path="/login" element={<Login />} />
         </Route>
       </Routes>
     </BrowserRouter>
