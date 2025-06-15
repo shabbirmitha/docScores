@@ -1,15 +1,16 @@
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { useAppDispatch } from "../../store";
+// import { useAppDispatch } from "../../store";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { addPlayer, Player, PLAYER_ROLE } from "./playerSlice";
+import { Player, PLAYER_ROLE } from "./playerTypes";
 
 import * as yup from "yup";
 
 import { useNavigate } from "react-router-dom";
 import DocStack from "@components/Stack";
 import { Button, FormControl, MenuItem, TextField, Typography } from "@mui/material";
+import usePlayersData from "./usePlayersData";
 
-type PlayerFormData = Omit<Player, "id">;
+type PlayerFormData = Omit<Player, "id" | "_id">;
 
 const formSchema = yup.object({
   name: yup.string().required("Name is Required."),
@@ -20,7 +21,8 @@ const formSchema = yup.object({
 });
 
 const PlayerForm = () => {
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
+  const { addPlayer } = usePlayersData();
   const navigate = useNavigate();
   const methods = useForm<PlayerFormData>({
     mode: "onChange",
@@ -37,7 +39,8 @@ const PlayerForm = () => {
   } = methods;
 
   const onSubmit = (data: PlayerFormData) => {
-    dispatch(addPlayer(data));
+    // dispatch(addPlayer(data));
+    addPlayer(data);
     navigate("/players");
   };
   return (

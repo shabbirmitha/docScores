@@ -5,7 +5,7 @@ import PlayerForm from "./features/Player/PlayerForm";
 import TeamsList from "./features/Team";
 import TeamForm from "./features/Team/TeamForm";
 import HomePage from "./features/HomePage";
-import MatchView from "./features/match";
+import MatchView from "./features/ Match";
 
 function App() {
   return (

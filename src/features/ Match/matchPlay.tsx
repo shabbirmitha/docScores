@@ -15,14 +15,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useAppDispatch, useAppSelector } from "../../store";
 import { useEffect, useState } from "react";
-import { addBall, MatchView, newPlayersInAction } from "./matchSlice";
+import { MatchView } from "./matchTypes";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Player } from "features/Player/playerSlice";
+import { Player } from "@features/Player/playerTypes";
+import useMatchesData from "./useMatchesData";
+import usePlayersData from "@features/Player/usePlayersData";
+import useTeamsData from "@features/Team/useTeamsData";
 
 const StyledScoreCard = styled(DocStack)(({ theme }) => ({
   flexDirection: "row",
@@ -135,18 +137,16 @@ const DEFAULT_BALL_DATA = {
 };
 
 const MatchPlay = () => {
-  const dispatch = useAppDispatch();
   const [onCrease, setOnCrease] = useState<{
     bowlerId?: Player["id"];
     strikerId?: Player["id"];
     nonStrikerId?: Player["id"];
   }>();
   const matchId = new URLSearchParams(window.location.search).get("matchId");
-  const matches = useAppSelector((state) => state.match.matches);
-  const teams = useAppSelector((state) => state.team.teams);
-  const players = useAppSelector((state) => state.player.players);
 
-  const match = matches.find((m) => m.id === matchId)!;
+  const { players } = usePlayersData();
+  const { teams } = useTeamsData();
+  const { match, addBall, addOversToInning, updateStrikers } = useMatchesData(matchId!);
 
   const {
     runs,
@@ -158,21 +158,22 @@ const MatchPlay = () => {
     nonStrikerId,
     currentRunRate,
     requiredRunRate,
+    _id: inningId,
     // requiredRuns,
     // ballsLeft: totalBallsLeft,
-  }: MatchView.Inning = match.innings[match.currentInnings];
-  const over = overs.length > 0 ? overs.length - 1 : 0;
+  }: MatchView.Inning = match?.innings?.[match?.currentInnings] || ({} as MatchView.Inning);
+  const over = overs?.length > 0 ? overs?.length - 1 : 0;
 
-  const balls = overs[over].balls.length > 0 ? overs[over].balls : null;
+  const balls = overs?.[over]?.balls?.length > 0 ? overs?.[over]?.balls : null;
 
-  const ballsLeft = overs[over].ballsLeft ? 6 - overs[over].ballsLeft : 0;
+  const ballsLeft = overs?.[over]?.ballsLeft ? 6 - overs?.[over]?.ballsLeft : 0;
 
-  const bowlerId = overs[over].bowlerId;
-  const bowler = players.find((p) => p.id === bowlerId);
+  const bowlerId = overs?.[over]?.bowlerId;
+  const bowler = players?.find((p) => p?._id === bowlerId);
 
-  const striker = players.find((p) => p.id === strikerId);
+  const striker = players?.find((p) => p?._id === strikerId);
 
-  const nonStriker = players.find((p) => p.id === nonStrikerId);
+  const nonStriker = players?.find((p) => p?._id === nonStrikerId);
 
   const methods = useForm({
     mode: "onChange",
@@ -206,7 +207,16 @@ const MatchPlay = () => {
         extraType: data.isExtra ? data.extraType : null,
         extraRuns: data.isExtra ? data.extraRuns : 0,
       };
-      dispatch(addBall({ matchId: matchId, ball: newBall, outOnEnd: data.playerOut }));
+
+      addBall({
+        matchId,
+        inningId,
+        overId: overs?.[over]?._id,
+        data: {
+          ...newBall,
+          outOnEnd: data.playerOut,
+        },
+      });
       if (data.runs % 2 === 1) {
         setOnCrease((prev) => ({
           ...prev,
@@ -218,44 +228,57 @@ const MatchPlay = () => {
     }
   };
 
-  const [open, setOpen] = useState(false);
+  const [openBowlerSelection, setOpenBowlerSelection] = useState(false);
 
-  const handleSelect = () => {
-    if (matchId && onCrease?.bowlerId && onCrease?.strikerId) {
-      dispatch(
-        newPlayersInAction({
-          matchId,
-          bowlerId: onCrease?.bowlerId,
-          strikerId: !strikerId ? onCrease?.strikerId : undefined,
-          nonStrikerId: !nonStrikerId ? onCrease?.nonStrikerId : undefined,
-        })
-      );
-      setOpen(false);
+  const handleBowlerSelect = async () => {
+    if (matchId && onCrease?.bowlerId) {
+      await addOversToInning({ matchId, inningId, bowlerId: onCrease.bowlerId });
+      setOpenBowlerSelection(false);
     }
   };
 
   useEffect(() => {
-    if (!bowler || !nonStriker || !striker) {
-      setOpen(true);
+    if (!bowler || overs?.[over]?.ballsLeft === 0) {
+      setOpenBowlerSelection(true);
     }
-  }, [bowler, striker, nonStriker]);
+  }, [bowler, over, overs]);
 
-  const strikerStats = _battingTeam.players.find((p) => p.playerId === strikerId);
-  const nonStrikerStats = _battingTeam.players.find((p) => p.playerId === nonStrikerId);
+  const [openStrikeSelection, setOpenStrikeSelection] = useState(false);
 
-  const bowlerStats = _bowlingTeam.players.find((p) => p.playerId === bowlerId);
+  const handleStrikeSelect = async () => {
+    if (matchId && (onCrease?.strikerId || onCrease?.nonStrikerId)) {
+      await updateStrikers({
+        matchId,
+        inningId,
+        strikers: {
+          strikerId: onCrease.strikerId ?? undefined,
+          nonStrikerId: onCrease.nonStrikerId ?? undefined,
+        },
+      });
+      setOpenStrikeSelection(false);
+    }
+  };
 
-  const playersToBat = _battingTeam.players
-    .filter((p) => !p.out && p.playerId !== strikerId && p.playerId !== nonStrikerId)
-    .map((p) => p.playerId);
+  useEffect(() => {
+    if (!striker || !nonStriker) {
+      setOpenStrikeSelection(true);
+    }
+  }, [striker, nonStriker]);
 
-  const bowlersToBowl = _bowlingTeam.players
-    .filter((p) => p.playerId !== overs[over]?.bowlerId)
-    .map((p) => p.playerId);
+  const strikerStats = _battingTeam?.players?.find((p) => p.playerId === strikerId);
+  const nonStrikerStats = _battingTeam?.players?.find((p) => p.playerId === nonStrikerId);
 
-  const fieldersId = _bowlingTeam.players
-    .filter((p) => p.playerId !== bowlerId)
-    .map((p) => p.playerId);
+  const bowlerStats = _bowlingTeam?.players?.find((p) => p.playerId === bowlerId);
+
+  const playersToBat = _battingTeam?.players
+    ?.filter((p) => !p.out && p.playerId !== strikerId && p.playerId !== nonStrikerId)
+    ?.map((p) => p.playerId);
+
+  const bowlersToBowl = _bowlingTeam?.players
+    ?.filter((p) => p.playerId !== overs[over]?.bowlerId)
+    ?.map((p) => p.playerId);
+
+  const fieldersId = _bowlingTeam?.players?.map((p) => p.playerId);
 
   const getOverBallsText = (ball: MatchView.CurrentBall) => {
     const runText = ball.isWicket ? (ball.runs >= 1 ? `${ball.runs}+` : "") : ball.runs;
@@ -265,50 +288,61 @@ const MatchPlay = () => {
     return `${runText}${extraText}${wicketText}`;
   };
 
-  const bowlersBalled = _bowlingTeam.players.filter((p) => p.ballBowled > 0);
+  const bowlersBalled = _bowlingTeam?.players?.filter((p) => p.ballBowled > 0);
 
-  const batsmanBatted = _battingTeam.players.filter(
+  const batsmanBatted = _battingTeam?.players?.filter(
     (p) => p.balls > 0 || p.playerId === strikerId || p.playerId === nonStrikerId
   );
 
-  const winner = teams.find((t) => t.id === match.winner);
+  const winner = teams?.find((t) => t._id === match?.winner);
 
   return (
     <DocStack py={1} gap={1}>
       <DocStack flexDirection={"row"} alignItems={"center"}>
         <Typography style={{ flex: 1 }}>MatchPlay</Typography>
       </DocStack>
-      {match.status === MatchView.MatchState.IN_PROGRESS ? (
+      {match?.status === MatchView.MatchState.IN_PROGRESS ? (
         <>
           <DocStack flexDirection={"row"} gap={1} bgcolor={"primary.main"} p={1} borderRadius={2}>
             <StyledPanelCard>
-              {(!bowlerId || !nonStrikerId || !strikerId) && (
+              {(!bowlerId || overs?.[over]?.ballsLeft === 0) && (
                 <Modal
-                  open={open}
+                  open={openBowlerSelection}
+                  sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                >
+                  <DocStack width={400} gap={1} p={2} bgcolor={"secondary.main"} borderRadius={2}>
+                    <Typography variant="h6">Select Bowler</Typography>
+                    <Autocomplete
+                      disableClearable
+                      autoFocus
+                      value={onCrease?.bowlerId}
+                      fullWidth
+                      onChange={(_, value) => {
+                        setOnCrease((prev) => ({ ...prev, bowlerId: value }));
+                      }}
+                      options={bowlersToBowl}
+                      getOptionLabel={(option: Player["id"]) => {
+                        const playerId = _bowlingTeam.players.find(
+                          (p) => p.playerId === option
+                        )?.playerId;
+                        const player = players?.find((p) => p._id === playerId);
+                        return player ? player.name : "Unknown Player";
+                      }}
+                      renderInput={(params) => <TextField {...params} label="Select Bowler" />}
+                    />
+                    <Button variant="contained" onClick={handleBowlerSelect}>
+                      Select
+                    </Button>
+                  </DocStack>
+                </Modal>
+              )}
+              {(!nonStrikerId || !strikerId) && (
+                <Modal
+                  open={openStrikeSelection}
                   sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   <DocStack width={400} gap={1} p={2} bgcolor={"secondary.main"} borderRadius={2}>
                     <Typography variant="h6">Select</Typography>
-                    {!bowlerId && (
-                      <Autocomplete
-                        disableClearable
-                        autoFocus
-                        value={onCrease?.bowlerId}
-                        fullWidth
-                        onChange={(_, value) => {
-                          setOnCrease((prev) => ({ ...prev, bowlerId: value }));
-                        }}
-                        options={bowlersToBowl}
-                        getOptionLabel={(option: Player["id"]) => {
-                          const playerId = _bowlingTeam.players.find(
-                            (p) => p.playerId === option
-                          )?.playerId;
-                          const player = players.find((p) => p.id === playerId);
-                          return player ? player.name : "Unknown Player";
-                        }}
-                        renderInput={(params) => <TextField {...params} label="Select Bowler" />}
-                      />
-                    )}
                     {!strikerId && (
                       <Autocomplete
                         disableClearable
@@ -320,13 +354,13 @@ const MatchPlay = () => {
                         }}
                         options={playersToBat}
                         getOptionLabel={(option: Player["id"]) => {
-                          const player = players.find((p) => p.id === option);
+                          const player = players?.find((p) => p._id === option);
                           return player ? player.name : "Unknown Player";
                         }}
                         renderInput={(params) => <TextField {...params} label="Select Striker" />}
                       />
                     )}
-                    {!nonStriker && (
+                    {!nonStrikerId && (
                       <Autocomplete
                         disableClearable
                         autoFocus
@@ -337,7 +371,7 @@ const MatchPlay = () => {
                         }}
                         options={playersToBat.filter((id) => id !== onCrease?.strikerId)}
                         getOptionLabel={(option: Player["id"]) => {
-                          const player = players.find((p) => p.id === option);
+                          const player = players?.find((p) => p._id === option);
                           return player ? player.name : "Unknown Player";
                         }}
                         renderInput={(params) => (
@@ -345,7 +379,7 @@ const MatchPlay = () => {
                         )}
                       />
                     )}
-                    <Button variant="contained" onClick={handleSelect}>
+                    <Button variant="contained" onClick={handleStrikeSelect}>
                       Select
                     </Button>
                   </DocStack>
@@ -504,7 +538,7 @@ const MatchPlay = () => {
                               getOptionLabel={(option) => {
                                 const playerId = onCrease?.[option as keyof typeof onCrease];
                                 return (
-                                  players.find((p) => p.id === playerId)?.name || "Unknown Player"
+                                  players?.find((p) => p._id === playerId)?.name || "Unknown Player"
                                 );
                               }}
                               renderInput={(params) => (
@@ -532,8 +566,9 @@ const MatchPlay = () => {
                               disabled={!watch("isWicket") && !isFielderInvolved}
                               options={fieldersId}
                               getOptionLabel={(option) =>
-                                players.find((p) => p.id === option)?.name || ""
+                                players?.find((p) => p._id === option)?.name || ""
                               }
+                              onChange={(_, value) => fieldProps.onChange(value)}
                               renderInput={(params) => (
                                 <TextField
                                   {...params}
@@ -678,7 +713,7 @@ const MatchPlay = () => {
 
       <DocStack flexDirection={"row"} gap={1} justifyContent={"space-between"}>
         {/* Batsmen Stats */}
-        {batsmanBatted.length > 0 && (
+        {batsmanBatted?.length > 0 && (
           <DocStack
             color={"primary.main"}
             bgcolor={"secondary.main"}
@@ -699,8 +734,8 @@ const MatchPlay = () => {
               </DocStack>
             </DocStack>
 
-            {batsmanBatted.map((_pl) => {
-              const player = players.find((p) => p.id === _pl.playerId);
+            {batsmanBatted?.map((_pl) => {
+              const player = players?.find((p) => p._id === _pl.playerId);
               return (
                 <DocStack flexDirection={"row"} gap={5} justifyContent={"space-between"}>
                   <Typography variant="subtitle2">{player?.name}</Typography>
@@ -717,7 +752,7 @@ const MatchPlay = () => {
           </DocStack>
         )}
         {/* Bowlers Stats */}
-        {bowlersBalled.length > 0 && (
+        {bowlersBalled?.length > 0 && (
           <DocStack
             color={"primary.main"}
             bgcolor={"secondary.main"}
@@ -737,8 +772,8 @@ const MatchPlay = () => {
               </DocStack>
             </DocStack>
 
-            {bowlersBalled.map((_pl) => {
-              const player = players.find((p) => p.id === _pl.playerId);
+            {bowlersBalled?.map((_pl) => {
+              const player = players?.find((p) => p._id === _pl.playerId);
               return (
                 <DocStack flexDirection={"row"} gap={5} justifyContent={"space-between"}>
                   <Typography variant="subtitle2">{player?.name}</Typography>

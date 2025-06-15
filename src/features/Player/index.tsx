@@ -8,15 +8,14 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { RootState, useAppDispatch } from "../../store/index";
-import { removePlayer } from "./playerSlice";
+import usePlayersData from "./usePlayersData";
 
 const PlayerList = () => {
-  const players = useSelector((state: RootState) => state.player.players);
+  const { players, isLoading, isError, error, removePlayer } = usePlayersData();
 
-  const dispatch = useAppDispatch();
+  if (isLoading) return <DocStack>Loading players...</DocStack>;
+  if (isError) return <DocStack>Error fetching players: {(error as Error).message}</DocStack>;
 
   return (
     <DocStack gap={1} py={1}>
@@ -30,13 +29,13 @@ const PlayerList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {players.map((player) => (
-              <TableRow key={player.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+            {players?.map((player) => (
+              <TableRow key={player._id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
                 <TableCell>{player.name}</TableCell>
                 <TableCell>{player.role}</TableCell>
                 <TableCell>
-                  <Button disabled>Edit</Button>
-                  <Button onClick={() => dispatch(removePlayer(player.id))}>Remove</Button>
+                  {/* <Button disabled>Edit</Button> */}
+                  <Button onClick={() => removePlayer(player._id)}>Remove</Button>
                 </TableCell>
               </TableRow>
             ))}

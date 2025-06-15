@@ -11,11 +11,12 @@ import {
 } from "@mui/material";
 
 import * as yup from "yup";
-import { Team } from "features/Team/teamSlice";
-import { createMatch, MatchView } from "../matchSlice";
+import { Team } from "@features/Team/teamTypes";
+import { MatchView } from "../matchTypes";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useAppDispatch, useAppSelector } from "../../../store";
+import useMatchesData from "../useMatchesData";
+import useTeamsData from "@features/Team/useTeamsData";
 
 const StyledModal = styled(Modal)({
   display: "flex",
@@ -55,7 +56,7 @@ type formDataType = {
 };
 
 const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ open, onClose }) => {
-  const dispatch = useAppDispatch();
+  const { addMatch } = useMatchesData();
 
   const methods = useForm<formDataType>({
     mode: "onChange",
@@ -70,8 +71,8 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ open, onClose }) =>
     reset,
   } = methods;
 
-  const teams = useAppSelector((store) => store.team.teams);
-  const teamIds = teams.map((t) => t.id);
+  const { teams } = useTeamsData();
+  const teamIds = teams?.map((t) => t._id) || [];
 
   const teamA = watch("teamA");
   const teamB = watch("teamB");
@@ -79,9 +80,8 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ open, onClose }) =>
   const handleCreateMatch = (data: formDataType) => {
     const { teamA, teamB, type } = data;
     if (!!teamA && !!teamB && !!type) {
-      const matchId = crypto.randomUUID();
       const teams = [teamA, teamB];
-      dispatch(createMatch({ id: matchId, teams, type }));
+      addMatch({ teams, type });
       reset();
       onClose?.();
     }
@@ -104,7 +104,7 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ open, onClose }) =>
                     {...fieldProps}
                     onChange={(_, v) => fieldProps.onChange(v)}
                     fullWidth
-                    getOptionLabel={(o) => teams.find((t) => t.id === o)?.name || "Unknown Team"}
+                    getOptionLabel={(o) => teams?.find((t) => t._id === o)?.name || "Unknown Team"}
                     options={teamIds.filter((t) => t !== teamB)}
                     disableClearable
                     renderInput={(params) => (
@@ -129,7 +129,7 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({ open, onClose }) =>
                     {...fieldProps}
                     onChange={(_, v) => fieldProps.onChange(v)}
                     fullWidth
-                    getOptionLabel={(o) => teams.find((t) => t.id === o)?.name || "Unknown Team"}
+                    getOptionLabel={(o) => teams?.find((t) => t._id === o)?.name || "Unknown Team"}
                     options={teamIds.filter((t) => t !== teamA)}
                     disableClearable
                     renderInput={(params) => (

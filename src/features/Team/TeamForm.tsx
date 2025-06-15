@@ -1,5 +1,4 @@
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { useAppDispatch, useAppSelector } from "../../store";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import * as yup from "yup";
@@ -7,27 +6,31 @@ import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import DocStack from "@components/Stack";
 import { Autocomplete, Button, FormControl, TextField, Typography } from "@mui/material";
-import { addTeam, Team } from "./teamSlice";
+import { Team } from "./teamTypes";
+import usePlayersData from "@features/Player/usePlayersData";
+import useTeamsData from "./useTeamsData";
 
-type TeamFormData = Omit<Team, "id">;
+type TeamFormData = Omit<Team, "id" | "_id">;
 
 const formSchema = yup.object({
   name: yup.string().required("Name is Required."),
-  playerIds: yup.array().of(yup.string().required()).min(1).required(),
+  playersId: yup.array().of(yup.string().required()).min(1).required(),
   captainId: yup.string().required(),
 });
 
 const TeamForm = () => {
-  const players = useAppSelector((store) => store.player.players);
-  const playersIds = players.map((p) => p.id);
-  const dispatch = useAppDispatch();
+  const { players } = usePlayersData();
+  const playersIds = players?.map((p) => p._id) || [];
+
+  const { addTeam } = useTeamsData();
+
   const navigate = useNavigate();
   const methods = useForm<TeamFormData>({
     mode: "onChange",
     resolver: yupResolver(formSchema),
     defaultValues: {
       name: "",
-      playerIds: [],
+      playersId: [],
       captainId: "",
     },
   });
@@ -39,11 +42,12 @@ const TeamForm = () => {
   } = methods;
 
   const onSubmit = (data: TeamFormData) => {
-    dispatch(addTeam(data));
+    // dispatch(addTeam(data));
+    addTeam(data);
     navigate("/teams");
   };
 
-  const selectedPlayerIds = watch("playerIds");
+  const selectedPlayerIds = watch("playersId");
 
   return (
     <DocStack gap={1}>
@@ -70,7 +74,7 @@ const TeamForm = () => {
         </FormControl>
         <FormControl>
           <Controller
-            {...register("playerIds")}
+            {...register("playersId")}
             render={({ field: { ref, ...fieldProps } }) => {
               return (
                 <Autocomplete
@@ -82,12 +86,12 @@ const TeamForm = () => {
                     fieldProps.onChange(v);
                   }}
                   disableCloseOnSelect
-                  getOptionLabel={(o) => players.find((p) => p.id === o)?.name || ""}
+                  getOptionLabel={(o) => players?.find((p) => p._id === o)?.name || ""}
                   renderInput={(param) => (
                     <TextField
                       {...param}
-                      error={!!errors.playerIds}
-                      helperText={errors.playerIds?.message}
+                      error={!!errors.playersId}
+                      helperText={errors.playersId?.message}
                       inputRef={ref}
                       label="Players"
                     />
@@ -109,7 +113,7 @@ const TeamForm = () => {
                   onChange={(_, v) => {
                     fieldProps.onChange(v);
                   }}
-                  getOptionLabel={(o) => players.find((p) => p.id === o)?.name || ""}
+                  getOptionLabel={(o) => players?.find((p) => p._id === o)?.name || ""}
                   renderInput={(param) => (
                     <TextField
                       {...param}

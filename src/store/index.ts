@@ -1,17 +1,12 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
-import playerReducer from "../features/Player/playerSlice";
-import teamReducer from "../features/Team/teamSlice";
-import matchReducer from "../features/match/matchSlice";
 import { loadState, saveState } from "@utils/localStorage";
 
 const preloadedState = loadState();
 
 const rootReducer = combineReducers({
-  player: playerReducer,
-  team: teamReducer,
-  match: matchReducer,
+  // player: playerReducer,
 });
 
 export const store = configureStore({
@@ -21,9 +16,7 @@ export const store = configureStore({
 
 store.subscribe(() => {
   saveState({
-    match: store.getState().match,
-    player: store.getState().player,
-    team: store.getState().team,
+    // match: store.getState().match,
   });
 });
 
