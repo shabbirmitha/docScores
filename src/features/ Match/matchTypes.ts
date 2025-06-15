@@ -1,5 +1,5 @@
 import { Player } from "@features/Player/playerTypes";
-import { Team } from "features/Team/teamSlice";
+import { Team } from "@features/Team/teamTypes";
 
 export namespace MatchView {
   export enum WicketType {

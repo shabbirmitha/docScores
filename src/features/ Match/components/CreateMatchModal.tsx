@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 
 import * as yup from "yup";
-import { Team } from "features/Team/teamSlice";
+import { Team } from "@features/Team/teamTypes";
 import { MatchView } from "../matchTypes";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";

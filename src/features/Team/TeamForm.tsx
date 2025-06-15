@@ -6,7 +6,7 @@ import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import DocStack from "@components/Stack";
 import { Autocomplete, Button, FormControl, TextField, Typography } from "@mui/material";
-import { Team } from "./teamSlice";
+import { Team } from "./teamTypes";
 import usePlayersData from "@features/Player/usePlayersData";
 import useTeamsData from "./useTeamsData";
 

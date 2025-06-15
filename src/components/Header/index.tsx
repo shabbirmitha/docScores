@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Typography, Button } from "@mui/material";
 import { Link } from "react-router-dom"; // For routing
 import DocStack from "@components/Stack";
-import CreateMatchModal from "@features/match/components/CreateMatchModal";
+import CreateMatchModal from "@features/ Match/components/CreateMatchModal";
 
 const Header: React.FC = () => {
   const [openCreateModal, setOpenCreateModel] = useState(false);

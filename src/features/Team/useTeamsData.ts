@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTeam, deleteTeam, getTeams } from "./api";
+import { Team } from "./teamTypes";
 // import { PLAYER_ROLE } from "./playerSlice";
 
 const useTeamsData = () => {
@@ -15,7 +16,7 @@ const useTeamsData = () => {
     staleTime: 15 * 60 * 1000,
   });
 
-  const addTeam = async (teamData) => {
+  const addTeam = async (teamData: Partial<Team>) => {
     const data = await createTeam({ team: teamData });
     queryClient.setQueryData(["teams"], [...(teams ?? []), data]);
   };

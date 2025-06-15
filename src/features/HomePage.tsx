@@ -1,7 +1,7 @@
 import DocStack from "@components/Stack";
 import { Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import useMatchesData from "./match/useMatchesData";
+import useMatchesData from "./ Match/useMatchesData";
 import useTeamsData from "./Team/useTeamsData";
 
 const HomePage = () => {
