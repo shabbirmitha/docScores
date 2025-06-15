@@ -2,6 +2,6 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "http://localhost:8000/api", // change to your backend
+  baseURL: "https://docscores-be.onrender.com/api",
   withCredentials: true,
 });
